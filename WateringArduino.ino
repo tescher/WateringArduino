@@ -7,6 +7,7 @@
 struct zoneConfig {
   byte pumpHiPin;
   byte pumpLoPin;
+  byte moisturePin;
   unsigned int moistureTrigger; // 0-1023
   unsigned int pumpTime;  // In seconds
 };
@@ -23,6 +24,9 @@ void pump_on(struct zoneConfig zone) {
 };
 
 void setup() {
+  
+  Serial.begin(9600);
+  
   // Initialize the zone configs and pumps
   
   byte zone;
@@ -34,6 +38,7 @@ void setup() {
   zones[zone].pumpLoPin = 4;
   pinMode(zones[zone].pumpLoPin,OUTPUT);
   zones[zone].moistureTrigger = 300;
+  zones[zone].moisturePin = 0;
   zones[zone].pumpTime = 20;
   
   // Zone 1
@@ -43,6 +48,7 @@ void setup() {
   zones[zone].pumpLoPin = 6;
   pinMode(zones[zone].pumpLoPin,OUTPUT);
   zones[zone].moistureTrigger = 300;
+  zones[zone].moisturePin = 1;
   zones[zone].pumpTime = 20;
   
   // Turn off all pumps
@@ -58,6 +64,10 @@ void loop() {
     delay(5000);
     pump_off(zones[zone]);
     delay(1000);
+    Serial.print("Zone ");
+    Serial.print(zone);
+    Serial.print(": ");
+    Serial.println(analogRead(zones[zone].moisturePin));
   }
 
 }
