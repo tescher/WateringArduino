@@ -2,7 +2,9 @@
 // (C) 2015 Tim Escher
 
 #define ZONES 2
-#define PAUSE 20*60*1000 // In milliseconds
+// #define PAUSE 5*1000 // In milliseconds
+#define PAUSE 20L*60L*1000L // In milliseconds
+#define MOISTURE_READS 10 // NUmber of reads of the moisture sensor to get rid of noise.
 
 struct zoneConfig {
   byte pumpHiPin;
@@ -23,6 +25,15 @@ void pump_on(struct zoneConfig zone) {
   digitalWrite(zone.pumpLoPin,LOW);
 };
 
+int moisture_level(struct zoneConfig zone) {
+  int reading = 0;
+  for (byte i=0;i<MOISTURE_READS;i++) {
+    reading += analogRead(zone.moisturePin);
+    delay(500);
+  }
+  return reading / MOISTURE_READS;
+}
+
 void setup() {
   
   Serial.begin(9600);
@@ -37,7 +48,7 @@ void setup() {
   pinMode(zones[zone].pumpHiPin,OUTPUT);
   zones[zone].pumpLoPin = 4;
   pinMode(zones[zone].pumpLoPin,OUTPUT);
-  zones[zone].moistureTrigger = 300;
+  zones[zone].moistureTrigger = 700;
   zones[zone].moisturePin = 0;
   zones[zone].pumpTime = 20;
   
@@ -47,7 +58,7 @@ void setup() {
   pinMode(zones[zone].pumpHiPin,OUTPUT);
   zones[zone].pumpLoPin = 6;
   pinMode(zones[zone].pumpLoPin,OUTPUT);
-  zones[zone].moistureTrigger = 300;
+  zones[zone].moistureTrigger = 700;
   zones[zone].moisturePin = 1;
   zones[zone].pumpTime = 20;
   
@@ -59,15 +70,20 @@ void setup() {
 }
 
 void loop() {
+  unsigned int moisture_reading;
   for (byte zone=0; zone<ZONES; zone++) {
-    pump_on(zones[zone]);
-    delay(5000);
-    pump_off(zones[zone]);
-    delay(1000);
+    moisture_reading = moisture_level(zones[zone]);
     Serial.print("Zone ");
     Serial.print(zone);
     Serial.print(": ");
-    Serial.println(analogRead(zones[zone].moisturePin));
+    Serial.println(moisture_reading);
+    if (moisture_reading > zones[zone].moistureTrigger) {    // Higher moisture reading => drier
+      Serial.println("pumping...");
+      pump_on(zones[zone]);
+      delay(zones[zone].pumpTime*1000);
+      pump_off(zones[zone]);
+    }  
   }
+  delay(PAUSE);
 
 }
