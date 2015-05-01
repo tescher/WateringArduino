@@ -27,9 +27,11 @@ void pump_on(struct zoneConfig zone) {
 
 int moisture_level(struct zoneConfig zone) {
   int reading = 0;
+  analogRead(zone.moisturePin);   // Discard first reading to allow settling.
+  delay(50);
   for (byte i=0;i<MOISTURE_READS;i++) {
     reading += analogRead(zone.moisturePin);
-    delay(500);
+    delay(50);
   }
   return reading / MOISTURE_READS;
 }
@@ -48,7 +50,7 @@ void setup() {
   pinMode(zones[zone].pumpHiPin,OUTPUT);
   zones[zone].pumpLoPin = 4;
   pinMode(zones[zone].pumpLoPin,OUTPUT);
-  zones[zone].moistureTrigger = 700;
+  zones[zone].moistureTrigger = 600;
   zones[zone].moisturePin = 0;
   zones[zone].pumpTime = 20;
   
@@ -58,7 +60,7 @@ void setup() {
   pinMode(zones[zone].pumpHiPin,OUTPUT);
   zones[zone].pumpLoPin = 6;
   pinMode(zones[zone].pumpLoPin,OUTPUT);
-  zones[zone].moistureTrigger = 700;
+  zones[zone].moistureTrigger = 600;
   zones[zone].moisturePin = 1;
   zones[zone].pumpTime = 20;
   
